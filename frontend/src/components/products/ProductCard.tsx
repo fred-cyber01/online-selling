@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatRwf } from '../../utils/format';
 import { useState, useEffect, useRef } from 'react';
+import { ContactAndAddModal } from '../orders/ContactAndAddModal';
 
 export type Product = {
   id: string;
@@ -30,6 +31,11 @@ export function ProductCard({ product }: Props) {
   const [isHovered, setIsHovered] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [showModal, setShowModal] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const handleConfirmAdd = () => {
+    addToCart(product);
+    navigate('/cart');
+  };
 
   const thumbsRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -240,8 +246,8 @@ export function ProductCard({ product }: Props) {
             type="button"
             onClick={() => {
               if (!isAuthenticated) return navigate('/login');
-              addToCart(product);
-              navigate('/cart');
+              // Open contact modal to require customer contact first
+              setContactModalOpen(true);
             }}
             className="w-full inline-flex items-center justify-center rounded-full px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 shadow-lg transition-transform"
           >
@@ -250,5 +256,16 @@ export function ProductCard({ product }: Props) {
         </div>
       </div>
     </article>
+    <ContactAndAddModal
+      product={product}
+      open={contactModalOpen}
+      onClose={() => setContactModalOpen(false)}
+      onConfirmAdd={handleConfirmAdd}
+    />
   );
+}
+
+// render modal alongside component so it keeps access to addToCart
+export default function ProductCardWrapper(props: any) {
+  return <ProductCard {...props} />;
 }
